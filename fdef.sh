@@ -69,7 +69,7 @@ echo "Defined function fdef."
 
 _fdef_completion() {
     local cur="${COMP_WORDS[COMP_CWORD]}"
-    COMPREPLY=( $(compgen -A function -- "$cur") )
+    readarray -t COMPREPLY < <(compgen -A function -- "$cur")
 }
 complete -F _fdef_completion fdef
 echo "Bash completion for fdef enabled."
