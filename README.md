@@ -6,15 +6,15 @@ A simple and practical system for creating and editing bash functions interactiv
 
 ## 📑 Table of Contents
 
-- [🚀 Quick Installation](#-quick-installation)
-- [🧹 Uninstall](#-uninstall)
-- [📖 What it provides](#-what-it-provides)
-- [💡 Typical Workflow](#-typical-workflow)
-- [⚙️ Configuration](#-configuration)
-- [📋 Features](#-features)
-- [🛡️ Safety and Best Practices](#-safety-and-best-practices)
-- [🤝 Contributing](#-contributing)
-- [👤 Author](#-author)
+- [🚀 Installation](#installation)
+- [🧹 Uninstall](#uninstall)
+- [📖 What it provides](#what-it-provides)
+- [💡 Typical Workflow](#typical-workflow)
+- [⚙️ Configuration](#configuration)
+- [📋 Features](#features)
+- [🛡️ Safety and Best Practices](#safety-and-best-practices)
+- [🤝 Contributing](#contributing)
+- [👤 Author](#author)
 
 ## 🚀 Installation
 
