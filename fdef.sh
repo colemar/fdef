@@ -52,23 +52,16 @@ fdef ()
     local initial_hash trash;
     read initial_hash trash <<< $(md5sum "$temp_file");
     ${EDITOR:-vi} "$temp_file";
-    local exit_status=$?;
-    if [[ $exit_status -eq 0 ]]; then
-        local final_hash;
-        read final_hash trash <<< $(md5sum "$temp_file");
-        if [[ "$initial_hash" == "$final_hash" ]]; then
-            echo "No changes detected. Function '${func_name}' was not sourced." 1>&2;
-        else
-            source "$temp_file";
-            local funcname
-            read funcname trash < "$temp_file"
-            echo "Function '${funcname}' successfully sourced (temporarily).";
-            echo "Remember to use 'saf' (declare -f > ~/.bash_functions) to save it permanently.";
-        fi;
+    local final_hash;
+    read final_hash trash <<< $(md5sum "$temp_file");
+    if [[ "$initial_hash" == "$final_hash" ]]; then
+        echo "No changes detected. Function '${func_name}' was not sourced." 1>&2;
     else
-        echo "Editor exited with error. Function was not sourced." 1>&2;
-        rm -f "$temp_file";
-        return 1;
+        source "$temp_file";
+        local funcname
+        read funcname trash < "$temp_file"
+        echo "Function '${funcname}' successfully sourced (temporarily).";
+        echo "Remember to use 'saf' (declare -f > ~/.bash_functions) to save it permanently.";
     fi;
     rm -f "$temp_file"
 }
