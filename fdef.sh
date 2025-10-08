@@ -3,15 +3,15 @@
 # Installation script for fdef function, sal and saf aliases
 
 # Ensure this script is sourced, not executed
-(return 0 2>/dev/null) || {
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   echo "Error: this script must be sourced, not executed. Use: source fdef.sh" >&2
   exit 1
-}
+fi
 
-alias sal &> /dev/null && { echo "Alias 'sal' already exists. Will not overwrite it." >&2; return 1; }
-alias saf &> /dev/null && { echo "Alias 'saf' already exists. Will not overwrite it." >&2; return 1; }
-declare -f fdef &> /dev/null && { echo "Function 'fdef' already exists. Will not overwrite it." >&2; return 1; }
-declare -f uninstall_fdef &> /dev/null && { echo "Function 'uninstall_fdef' already exists. Will not overwrite it." >&2; return 1; }
+alias sal &> /dev/null && { echo "Alias 'sal' already exists. Will not overwrite it. Aborted installation." >&2; return 1; }
+alias saf &> /dev/null && { echo "Alias 'saf' already exists. Will not overwrite it. Aborted installation." >&2; return 1; }
+declare -f fdef &> /dev/null && { echo "Function 'fdef' already exists. Will not overwrite it. Aborted installation." >&2; return 1; }
+declare -f uninstall_fdef &> /dev/null && { echo "Function 'uninstall_fdef' already exists. Will not overwrite it. Aborted installation." >&2; return 1; }
 
 alias sal='alias > ~/.bash_aliases'
 alias saf='declare -f > ~/.bash_functions'
@@ -21,7 +21,7 @@ alias saf
 
 # Add source statements to .bashrc if not already present
 if [[ -f ~/.bashrc ]]; then
-    
+
   if ! grep -q "\.bash_functions" ~/.bashrc; then
     echo '[ -f ~/.bash_functions ] && source ~/.bash_functions # Added by fdef installer' >> ~/.bashrc
     echo "Auto-load '~/.bash_functions' statement added to ~/.bashrc."
@@ -34,8 +34,8 @@ if [[ -f ~/.bashrc ]]; then
 
 fi
 
-fdef () 
-{ 
+fdef ()
+{
     if [[ -z "$1" ]]; then
         echo "Error: Please provide a function name (e.g. fdef myfunction)." 1>&2;
         return 1;
@@ -60,7 +60,9 @@ fdef ()
             echo "No changes detected. Function '${func_name}' was not sourced." 1>&2;
         else
             source "$temp_file";
-            echo "Function '${func_name}' successfully sourced (temporarily).";
+            local funcname
+            read funcname trash < "$temp_file"
+            echo "Function '${funcname}' successfully sourced (temporarily).";
             echo "Remember to use 'saf' (declare -f > ~/.bash_functions) to save it permanently.";
         fi;
     else
@@ -72,6 +74,13 @@ fdef ()
 }
 echo "Defined function fdef."
 
+_fdef_completion() {
+    local cur="${COMP_WORDS[COMP_CWORD]}"
+    COMPREPLY=( $(compgen -A function -- "$cur") )
+}
+complete -F _fdef_completion fdef
+echo "Bash completion for fdef enabled."
+
 uninstall_fdef() {
   echo "Uninstalling fdef, sal, and saf..."
 
@@ -80,6 +89,24 @@ uninstall_fdef() {
   unalias saf 2>/dev/null
   unset -f fdef 2>/dev/null
   unset -f uninstall_fdef 2>/dev/null
+  unset -f _fdef_completion 2>/dev/null
+
+  # Remove fdef completions from current session
+  complete -r fdef 2>/dev/null
+
+  # Remove fdef-related definitions from ~/.bash_aliases
+  if [[ -f ~/.bash_aliases ]]; then
+    cp ~/.bash_aliases ~/.bash_aliases.bak
+    alias > ~/.bash_aliases
+    echo "Removed 'sal' and 'saf' from ~/.bash_aliases (backup: ~/.bash_aliases.bak)."
+  fi
+
+  # Remove fdef-related definitions from ~/.bash_functions
+  if [[ -f ~/.bash_functions ]]; then
+    cp ~/.bash_functions ~/.bash_functions.bak
+    declare -f > ~/.bash_functions
+    echo "Removed 'fdef', 'uninstall_fdef', and '_fdef_completion' from ~/.bash_functions (backup: ~/.bash_functions.bak)."
+  fi
 
   # Remove autoload lines from .bashrc (only if present)
   if [[ -f ~/.bashrc ]]; then
@@ -87,7 +114,7 @@ uninstall_fdef() {
       sed -i.bak '/Added by fdef installer/d' ~/.bashrc
       echo "Removed autoload entries from ~/.bashrc (backup saved as ~/.bashrc.bak)."
     else
-      echo "No autoload entries found in ~/.bashrc — nothing to remove."
+      echo "No autoload entries found in ~/.bashrc - nothing to remove."
     fi
   fi
 

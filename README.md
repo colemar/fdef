@@ -10,9 +10,9 @@ A simple and practical system for creating and editing bash functions interactiv
 - [🧹 Uninstall](#-uninstall)
 - [📖 What it provides](#-what-it-provides)
 - [💡 Typical Workflow](#-typical-workflow)
-- [⚙️ Configuration](#configuration)
+- [⚙️ Configuration](#config)
 - [📋 Features](#-features)
-- [🛡️ Safety and Best Practices](#safety-and-best-practices)
+- [🛡️ Safety and Best Practices](#sabp)
 - [🤝 Contributing](#-contributing)
 - [👤 Author](#-author)
 
@@ -26,7 +26,7 @@ Copy and paste this command into your terminal:
 source <(curl -sL https://raw.githubusercontent.com/colemar/fdef/main/fdef.sh)
 ```
 
-This will load aliases `sal` `saf` and functions `fdef` `uninstall_fdef` into your current session. It will also modify your `~/.bashrc` file to automatically load your functions and aliases in future sessions.
+This will load aliases `sal` `saf` and functions `fdef` `uninstall_fdef` into your current session. It will also enable bash completion for `fdef` and modify your `~/.bashrc` file to automatically load your functions and aliases in future sessions.
 
 #### Step 2: Save the tools for future sessions
 
@@ -48,7 +48,7 @@ Copy and paste this command into your terminal:
 uninstall_fdef
 ```
 
-This will remove aliases `sal` and `saf`, functions `fdef` and `uninstall_fdef`, auto-load entries if added to `~/.bashrc`. It will also ask whether to remove `~/.bash_aliases` and `~/.bash_functions`.  You can reinstall at any time using the command above.
+This will remove aliases `sal` and `saf`, functions `fdef`, `uninstall_fdef`, and `_fdef_completion`, bash completion for `fdef`, and auto-load entries from `~/.bashrc`. It will also ask whether to remove `~/.bash_aliases` and `~/.bash_functions`. You can reinstall at any time using the command above.
 
 ## 📖 What it provides
 
@@ -66,8 +66,9 @@ fdef function_name
 
 - If the function **doesn't exist**: creates a basic template and opens the editor
 - If the function **already exists**: loads it into the editor for modification
-- After saving, loads the function into the current shell (temporarily)
+- After saving, loads the (possibly renamed) function into the current shell (only for the current session)
 - Automatically detects if changes were made (via MD5 hash)
+- Tab completion suggests existing function names when typing `fdef <TAB>`
 
 ### `sal` - Save ALiases
 
@@ -157,18 +158,34 @@ Now the function is saved in `~/.bash_functions`.
 ## 🔧 Editing existing functions
 
 ```bash
-$ fdef mytest
-Editing existing function: 'mytest'.
+$ fdef oldfunc
+Editing existing function: 'oldfunc'.
 # Opens the editor with the current definition
+```
+
+Modify the function in the editor, save and close. You'll see:
+
+```bash
+Function 'oldfunc' successfully sourced (temporarily).
+Remember to use 'saf' (declare -f > ~/.bash_functions) to save it permanently.
+```
+
+While inside the editor you can also optionally rename the function by modifying its signature. This will create a new function with the chosen name, based on the old function, leaving the old function unmodified.
+
+If you change the name in the signature to `newfunc`, you'll see:
+
+```bash
+Function 'newfunc' successfully sourced (temporarily).
+Remember to use 'saf' (declare -f > ~/.bash_functions) to save it permanently.
 ```
 
 If you exit the editor without changes:
 
 ```bash
-No changes detected. Function 'mytest' was not sourced.
+No changes detected. Function 'oldfunc' was not sourced.
 ```
 
-## ⚙️ <a name="configuration"></a>Configuration
+## ⚙️ <a name="config"></a>Configuration
 
 ### Default editor
 
@@ -188,8 +205,9 @@ export EDITOR=nano    # or vim, emacs, code, etc.
 - ✅ **Change detection**: avoids unnecessary sourcing
 - ✅ **Automatic cleanup**: removes temporary files
 - ✅ **Smart template**: creates ready-to-use functions
+- ✅ **Tab completion**: suggests function names while typing
 
-## 🛡️ <a name="safety-and-best-practices"></a>Safety and Best Practices
+## 🛡️ <a name="sabp"></a>Safety and Best Practices
 
 - Functions are loaded **temporarily** into the current shell
 - Nothing is written to permanent files until you explicitly use `saf`
