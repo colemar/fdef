@@ -10,9 +10,9 @@ A simple and practical system for creating and editing bash functions interactiv
 - [🧹 Uninstall](#-uninstall)
 - [📖 What it provides](#-what-it-provides)
 - [💡 Typical Workflow](#-typical-workflow)
-- [⚙️ Configuration](#-configuration)
+- [⚙️ Configuration](#configuration)
 - [📋 Features](#-features)
-- [🛡️ Safety and Best Practices](#-safety-and-best-practices)
+- [🛡️ Safety and Best Practices](#safety-and-best-practices)
 - [🤝 Contributing](#-contributing)
 - [👤 Author](#-author)
 
@@ -168,7 +168,7 @@ If you exit the editor without changes:
 No changes detected. Function 'mytest' was not sourced.
 ```
 
-## ⚙️ Configuration
+## ⚙️ <a name="configuration"></a>Configuration
 
 ### Default editor
 
@@ -189,7 +189,7 @@ export EDITOR=nano    # or vim, emacs, code, etc.
 - ✅ **Automatic cleanup**: removes temporary files
 - ✅ **Smart template**: creates ready-to-use functions
 
-## 🛡️ Safety and Best Practices
+## 🛡️ <a name="safety-and-best-practices"></a>Safety and Best Practices
 
 - Functions are loaded **temporarily** into the current shell
 - Nothing is written to permanent files until you explicitly use `saf`
