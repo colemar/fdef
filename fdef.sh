@@ -49,17 +49,17 @@ fdef ()
         echo -e "${func_name}() {\n\n  # Function logic here\n  echo \"Function ${func_name} executed.\"\n\n}" > "$temp_file";
         echo "Creating new function: '${func_name}'.";
     fi;
-    local initial_hash trash;
-    read initial_hash trash <<< $(md5sum "$temp_file");
+    local initial_hash _;
+    read initial_hash _ <<< $(md5sum "$temp_file");
     ${EDITOR:-vi} "$temp_file";
     local final_hash;
-    read final_hash trash <<< $(md5sum "$temp_file");
+    read final_hash _ <<< $(md5sum "$temp_file");
     if [[ "$initial_hash" == "$final_hash" ]]; then
         echo "No changes detected. Function '${func_name}' was not sourced." 1>&2;
     else
         source "$temp_file";
         local funcname
-        read funcname trash < "$temp_file"
+        read funcname _ < "$temp_file"
         echo "Function '${funcname}' successfully sourced (temporarily).";
         echo "Remember to use 'saf' (declare -f > ~/.bash_functions) to save it permanently.";
     fi;
