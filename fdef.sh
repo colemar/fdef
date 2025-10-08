@@ -46,7 +46,7 @@ fdef ()
         declare -f "$func_name" | sed -E 's/^([[:space:]]+)\1/\1/' > "$temp_file";
         echo "Editing existing function: '${func_name}'.";
     else
-        echo -e "${func_name}() {\n\n  # Function logic here\n  echo \"Function ${func_name} executed.\"\n\n}" > "$temp_file";
+        echo -e "${func_name}()\n{\n\n  # Function logic here\n  echo \"Function ${func_name} executed.\"\n\n}" > "$temp_file";
         echo "Creating new function: '${func_name}'.";
     fi;
     local initial_hash _;

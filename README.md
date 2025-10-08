@@ -121,7 +121,8 @@ Creating new function: 'mytest'.
 Default template:
 
 ```bash
-mytest() {
+mytest()
+{
 
   # Function logic here
   echo "Function mytest executed."
