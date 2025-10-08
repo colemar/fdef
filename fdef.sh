@@ -2,12 +2,37 @@
 
 # Installation script for fdef function, sal and saf aliases
 
+# Ensure this script is sourced, not executed
+(return 0 2>/dev/null) || {
+  echo "Error: this script must be sourced, not executed. Use: source fdef.sh" >&2
+  exit 1
+}
+
 alias sal &> /dev/null && { echo "Alias 'sal' already exists. Will not overwrite it." >&2; return 1; }
 alias saf &> /dev/null && { echo "Alias 'saf' already exists. Will not overwrite it." >&2; return 1; }
 declare -f fdef &> /dev/null && { echo "Function 'fdef' already exists. Will not overwrite it." >&2; return 1; }
+declare -f uninstall_fdef &> /dev/null && { echo "Function 'uninstall_fdef' already exists. Will not overwrite it." >&2; return 1; }
 
 alias sal='alias > ~/.bash_aliases'
 alias saf='declare -f > ~/.bash_functions'
+echo "Defined aliases: sal, saf."
+alias sal
+alias saf
+
+# Add source statements to .bashrc if not already present
+if [[ -f ~/.bashrc ]]; then
+    
+  if ! grep -q "\.bash_functions" ~/.bashrc; then
+    echo '[ -f ~/.bash_functions ] && source ~/.bash_functions # Added by fdef installer' >> ~/.bashrc
+    echo "Auto-load '~/.bash_functions' statement added to ~/.bashrc."
+  fi
+
+  if ! grep -q "\.bash_aliases" ~/.bashrc; then
+    echo '[ -f ~/.bash_aliases ] && source ~/.bash_aliases # Added by fdef installer' >> ~/.bashrc
+    echo "Auto-load '~/.bash_aliases' statement added to ~/.bashrc."
+  fi
+
+fi
 
 fdef () 
 { 
@@ -40,8 +65,40 @@ fdef ()
         fi;
     else
         echo "Editor exited with error. Function was not sourced." 1>&2;
-        rm "$temp_file";
+        rm -f "$temp_file";
         return 1;
     fi;
     rm -f "$temp_file"
 }
+echo "Defined function fdef."
+
+uninstall_fdef() {
+  echo "Uninstalling fdef, sal, and saf..."
+
+  # Remove aliases and function definitions from current session
+  unalias sal 2>/dev/null
+  unalias saf 2>/dev/null
+  unset -f fdef 2>/dev/null
+  unset -f uninstall_fdef 2>/dev/null
+
+  # Remove autoload lines from .bashrc (only if present)
+  if [[ -f ~/.bashrc ]]; then
+    if grep -q 'Added by fdef installer' ~/.bashrc; then
+      sed -i.bak '/Added by fdef installer/d' ~/.bashrc
+      echo "Removed autoload entries from ~/.bashrc (backup saved as ~/.bashrc.bak)."
+    else
+      echo "No autoload entries found in ~/.bashrc — nothing to remove."
+    fi
+  fi
+
+  # Offer to delete the saved alias and function files
+  for file in ~/.bash_aliases ~/.bash_functions; do
+    if [[ -f "$file" ]]; then
+      read -p "Delete $file? [y/N] " reply
+      [[ "$reply" =~ ^[Yy]$ ]] && rm -f "$file" && echo "Deleted $file."
+    fi
+  done
+
+  echo "Uninstallation completed."
+}
+echo "Defined function uninstall_fdef."
