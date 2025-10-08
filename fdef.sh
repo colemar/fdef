@@ -1,7 +1,12 @@
 #!/bin/bash
 
-# Installation script for fdef function and saf alias
+# Installation script for fdef function, sal and saf aliases
 
+alias sal &> /dev/null && { echo "Alias 'sal' already exists. Will not overwrite it." >&2; return 1; }
+alias saf &> /dev/null && { echo "Alias 'saf' already exists. Will not overwrite it." >&2; return 1; }
+declare -f fdef &> /dev/null && { echo "Function 'fdef' already exists. Will not overwrite it." >&2; return 1; }
+
+alias sal='alias > ~/.bash_aliases'
 alias saf='declare -f > ~/.bash_functions'
 
 fdef () 
