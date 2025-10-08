@@ -75,7 +75,7 @@ complete -F _fdef_completion fdef
 echo "Bash completion for fdef enabled."
 
 uninstall_fdef() {
-  echo "Uninstalling fdef, sal, and saf..."
+  echo "Undefining sal, saf, fdef, _fdef_completion, uninstall_fdef ..."
 
   # Remove aliases and function definitions from current session
   unalias sal 2>/dev/null
@@ -122,3 +122,5 @@ uninstall_fdef() {
   echo "Uninstallation completed."
 }
 echo "Defined function uninstall_fdef."
+
+echo "Installation completed."
