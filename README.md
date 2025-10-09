@@ -15,6 +15,7 @@ A simple and practical system for creating and editing bash functions interactiv
 - [⚙️ Configuration](#config)
 - [📋 Features](#-features)
 - [🛡️ Safety and Best Practices](#sabp)
+- [⚠️ Limitations](#-limitations)
 - [🤝 Contributing](#-contributing)
 - [👤 Author](#-author)
 
@@ -90,7 +91,7 @@ sal
 alias > ~/.bash_aliases
 ```
 
-Saves all aliases in the current shell to the `~/.bash_aliases` file to make them permanent across sessions.
+Takes a *snapshot* of all aliases currently defined in the shell and saves it to `~/.bash_aliases`, making them permanent across sessions.
 
 ### `saf` - Save All Functions
 
@@ -109,7 +110,7 @@ saf
 declare -f > ~/.bash_functions
 ```
 
-Saves all functions in the current shell to the `~/.bash_functions` file to make them permanent across sessions.
+Takes a *snapshot* of all currently defined bash functions and saves it to `~/.bash_functions`, making them permanent across sessions.
 
 ## 💡 Typical Workflow
 
@@ -261,6 +262,20 @@ backup() {
   echo "Backup completed: $dest"
 }
 ```
+
+## ⚠️ Limitations
+
+- You **should not** edit `~/.bash_aliases` nor `~/.bash_functions`, they will be overwritten by `sal` and `saf` respectively.
+
+- The `sal` and `saf` commands work by taking a full *snapshot* of the current shell state (aliases and functions). **They are not incremental tools** — each snapshot completely replaces the corresponding file.
+
+- **Formatting is not preserved**: When editing a function, bash reformats the code automatically due to how functions are stored internally.  This means:
+  
+  - All comments (`#`) are stripped out
+  
+  - Indentation is standardized
+  
+  - Empty lines and custom spacing are removed
 
 ## 🤝 Contributing
 

@@ -8,21 +8,12 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   exit 1
 fi
 
-if type _check_fed_names &>/dev/null; then
-  echo "Error: cannot define function _check_fed_names because it exists already as type '$(type -t _check_fed_names)'" >&2
-  return 1
-fi
-_check_fed_names() {
-  local name
-  for name in "$@"; do
-    if type $name &>/dev/null; then
-      echo "Error: cannot define '$name' because it exists already as type '$(type -t $name)'" >&2
-      return 1
-    fi
-  done
-}
-
-_check_fed_names sal saf _check_fed_name fed _fed_completion uninstall_fed
+for _name in sal saf _check_fed_name fed _fed_completion uninstall_fed; do
+  if type $_name &>/dev/null; then
+    echo "Error: cannot define '$_name' because it exists already as type '$(type -t $_name)'" >&2
+    return 1
+  fi
+done
 
 alias sal='alias > ~/.bash_aliases'
 alias saf='declare -f > ~/.bash_functions'
@@ -48,7 +39,7 @@ fi
 # Helper function to check if a word is a valid function name
 _check_fed_name() {
   # a word is a valid function name if and only if it is a valid variable name
-  local "$1"="" || return 1
+  local "$1"="" &>/dev/null || return 1
 }
 
 fed () {
@@ -68,6 +59,7 @@ fed () {
   fi
   local temp_file=$(mktemp --suffix=.sh)
   if declare -f "$func_name" > /dev/null; then
+    # Extract function definition from session and halve the indentation
     declare -f "$func_name" | sed -E 's/^([[:space:]]+)\1/\1/' > "$temp_file"
     echo "Editing existing function: '${func_name}'."
   else
@@ -75,10 +67,10 @@ fed () {
     echo "Creating new function: '${func_name}'."
   fi
   local initial_hash _
-  read initial_hash _ <<< $(md5sum "$temp_file")
+  read -r initial_hash _ <<< $(md5sum "$temp_file")
   ${EDITOR:-vi} "$temp_file"
   local final_hash
-  read final_hash _ <<< $(md5sum "$temp_file")
+  read -r final_hash _ <<< $(md5sum "$temp_file")
   if [[ "$initial_hash" == "$final_hash" ]]; then
     echo "No changes detected. Function '${func_name}' was not sourced." >&2
   else
@@ -86,10 +78,10 @@ fed () {
     func_name=${func_name%%(*}; func_name=${func_name##*([[:space:]])}; func_name=${func_name%%*([[:space:]])}
     if source "$temp_file"; then
       echo "Function '${func_name}' successfully sourced (temporarily)."
+      echo "Remember to use 'saf' (declare -f > ~/.bash_functions) to save it permanently."
     else
       echo "Error: sourcing failed" >&2
     fi
-    echo "Remember to use 'saf' (declare -f > ~/.bash_functions) to save it permanently."
   fi
   rm -f "$temp_file"
 }
@@ -105,12 +97,12 @@ echo "Bash completion for fed enabled."
 uninstall_fed() {
   echo "Undefining sal, saf, fed, uninstall_fed ..."
 
-  # Remove aliases and function definitions from current session
-  unalias sal saf 2>/dev/null
-  unset -f fed uninstall_fed _fed_completion _check_fed_names _check_fed_name 2>/dev/null
-
   # Remove fed completions from current session
   complete -r fed 2>/dev/null
+
+  # Remove aliases and function definitions from current session
+  unalias sal saf 2>/dev/null
+  unset -f _check_fed_name fed _fed_completion uninstall_fed 2>/dev/null
 
   # Remove fed-related definitions from ~/.bash_aliases
   if [[ -f ~/.bash_aliases ]]; then
@@ -122,14 +114,14 @@ uninstall_fed() {
   if [[ -f ~/.bash_functions ]]; then
     cp ~/.bash_functions ~/.bash_functions.bak
     declare -f > ~/.bash_functions
-    echo "Removed 'fed', 'uninstall_fed', and '_fed_completion' from ~/.bash_functions (backup: ~/.bash_functions.bak)."
+    echo "Removed 'fed' and 'uninstall_fed' from ~/.bash_functions (backup: ~/.bash_functions.bak)."
   fi
 
   # Remove autoload lines from .bashrc (only if present)
   if [[ -f ~/.bashrc ]]; then
     if grep -q 'Added by fed installer' ~/.bashrc; then
       sed -i.bak '/Added by fed installer/d' ~/.bashrc
-      echo "Removed autoload entries from ~/.bashrc (backup saved as ~/.bashrc.bak)."
+      echo "Removed autoload entries from ~/.bashrc (backup: ~/.bashrc.bak)."
     else
       echo "No autoload entries found in ~/.bashrc - nothing to remove."
     fi
@@ -138,7 +130,7 @@ uninstall_fed() {
   # Offer to delete the saved alias and function files
   for file in ~/.bash_aliases ~/.bash_functions; do
     if [[ -f "$file" ]]; then
-      read -p "Delete $file? [y/N] " reply
+      read -rp "Delete $file? [y/N] " reply
       [[ "$reply" =~ ^[Yy]$ ]] && rm -f "$file" && echo "Deleted $file."
     fi
   done
