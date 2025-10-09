@@ -1,17 +1,17 @@
 #!/bin/bash
 
-# Installation script for fdef function, sal and saf aliases
+# Installation script for fed function, sal and saf aliases
 
 # Ensure this script is sourced, not executed
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-  echo "Error: this script must be sourced, not executed. Use: source fdef.sh" >&2
+  echo "Error: this script must be sourced, not executed. Use: source fed.sh" >&2
   exit 1
 fi
 
 alias sal &> /dev/null && { echo "Alias 'sal' already exists. Will not overwrite it. Aborted installation." >&2; return 1; }
 alias saf &> /dev/null && { echo "Alias 'saf' already exists. Will not overwrite it. Aborted installation." >&2; return 1; }
-declare -f fdef &> /dev/null && { echo "Function 'fdef' already exists. Will not overwrite it. Aborted installation." >&2; return 1; }
-declare -f uninstall_fdef &> /dev/null && { echo "Function 'uninstall_fdef' already exists. Will not overwrite it. Aborted installation." >&2; return 1; }
+declare -f fed &> /dev/null && { echo "Function 'fed' already exists. Will not overwrite it. Aborted installation." >&2; return 1; }
+declare -f uninstall_fed &> /dev/null && { echo "Function 'uninstall_fed' already exists. Will not overwrite it. Aborted installation." >&2; return 1; }
 
 alias sal='alias > ~/.bash_aliases'
 alias saf='declare -f > ~/.bash_functions'
@@ -23,21 +23,21 @@ alias saf
 if [[ -f ~/.bashrc ]]; then
 
   if ! grep -q "\.bash_functions" ~/.bashrc; then
-    echo '[ -f ~/.bash_functions ] && source ~/.bash_functions # Added by fdef installer' >> ~/.bashrc
+    echo '[ -f ~/.bash_functions ] && source ~/.bash_functions # Added by fed installer' >> ~/.bashrc
     echo "Auto-load '~/.bash_functions' statement added to ~/.bashrc."
   fi
 
   if ! grep -q "\.bash_aliases" ~/.bashrc; then
-    echo '[ -f ~/.bash_aliases ] && source ~/.bash_aliases # Added by fdef installer' >> ~/.bashrc
+    echo '[ -f ~/.bash_aliases ] && source ~/.bash_aliases # Added by fed installer' >> ~/.bashrc
     echo "Auto-load '~/.bash_aliases' statement added to ~/.bashrc."
   fi
 
 fi
 
-fdef ()
+fed ()
 {
   if [[ -z "$1" ]]; then
-    echo "Error: Please provide a function name (e.g. fdef myfunction)." 1>&2;
+    echo "Error: Please provide a function name (e.g. fed myfunction)." 1>&2;
     return 1;
   fi;
   local func_name="$1";
@@ -65,46 +65,46 @@ fdef ()
   fi;
   rm -f "$temp_file"
 }
-echo "Defined function fdef."
+echo "Defined function fed."
 
-_fdef_completion() {
+_fed_completion() {
   local cur="${COMP_WORDS[COMP_CWORD]}"
   readarray -t COMPREPLY < <(compgen -A function -- "$cur")
 }
-complete -F _fdef_completion fdef
-echo "Bash completion for fdef enabled."
+complete -F _fed_completion fed
+echo "Bash completion for fed enabled."
 
-uninstall_fdef() {
-  echo "Undefining sal, saf, fdef, _fdef_completion, uninstall_fdef ..."
+uninstall_fed() {
+  echo "Undefining sal, saf, fed, _fed_completion, uninstall_fed ..."
 
   # Remove aliases and function definitions from current session
   unalias sal 2>/dev/null
   unalias saf 2>/dev/null
-  unset -f fdef 2>/dev/null
-  unset -f uninstall_fdef 2>/dev/null
-  unset -f _fdef_completion 2>/dev/null
+  unset -f fed 2>/dev/null
+  unset -f uninstall_fed 2>/dev/null
+  unset -f _fed_completion 2>/dev/null
 
-  # Remove fdef completions from current session
-  complete -r fdef 2>/dev/null
+  # Remove fed completions from current session
+  complete -r fed 2>/dev/null
 
-  # Remove fdef-related definitions from ~/.bash_aliases
+  # Remove fed-related definitions from ~/.bash_aliases
   if [[ -f ~/.bash_aliases ]]; then
     cp ~/.bash_aliases ~/.bash_aliases.bak
     alias > ~/.bash_aliases
     echo "Removed 'sal' and 'saf' from ~/.bash_aliases (backup: ~/.bash_aliases.bak)."
   fi
 
-  # Remove fdef-related definitions from ~/.bash_functions
+  # Remove fed-related definitions from ~/.bash_functions
   if [[ -f ~/.bash_functions ]]; then
     cp ~/.bash_functions ~/.bash_functions.bak
     declare -f > ~/.bash_functions
-    echo "Removed 'fdef', 'uninstall_fdef', and '_fdef_completion' from ~/.bash_functions (backup: ~/.bash_functions.bak)."
+    echo "Removed 'fed', 'uninstall_fed', and '_fed_completion' from ~/.bash_functions (backup: ~/.bash_functions.bak)."
   fi
 
   # Remove autoload lines from .bashrc (only if present)
   if [[ -f ~/.bashrc ]]; then
-    if grep -q 'Added by fdef installer' ~/.bashrc; then
-      sed -i.bak '/Added by fdef installer/d' ~/.bashrc
+    if grep -q 'Added by fed installer' ~/.bashrc; then
+      sed -i.bak '/Added by fed installer/d' ~/.bashrc
       echo "Removed autoload entries from ~/.bashrc (backup saved as ~/.bashrc.bak)."
     else
       echo "No autoload entries found in ~/.bashrc - nothing to remove."
@@ -121,6 +121,6 @@ uninstall_fdef() {
 
   echo "Uninstallation completed."
 }
-echo "Defined function uninstall_fdef."
+echo "Defined function uninstall_fed."
 
 echo "Installation completed."

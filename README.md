@@ -1,4 +1,4 @@
-# fdef - Bash Function Editor
+# fed - Bash Function Editor
 
 ![Made with Bash](https://img.shields.io/badge/Made%20with-Bash-1f425f.svg)
 
@@ -23,17 +23,17 @@ A simple and practical system for creating and editing bash functions interactiv
 Copy and paste this command into your terminal:
 
 ```bash
-source <(curl -sL https://raw.githubusercontent.com/colemar/fdef/main/fdef.sh)
+source <(curl -sL https://raw.githubusercontent.com/colemar/fed/main/fed.sh)
 ```
 
-This will load aliases `sal` `saf` and functions `fdef` `uninstall_fdef` into your current session. It will also enable bash completion for `fdef` and modify your `~/.bashrc` file to automatically load your functions and aliases in future sessions.
+This will load aliases `sal` `saf` and functions `fed` `uninstall_fed` into your current session. It will also enable bash completion for `fed` and modify your `~/.bashrc` file to automatically load your functions and aliases in future sessions.
 
 #### Step 2: Save the tools for future sessions
 
 After running the installer, the new tools are available, but only for the current session. Run these two commands to save them permanently:
 
 ```bash
-# Saves all the defined functions - including 'fdef' and 'uninstall_fdef' - to ~/.bash_functions
+# Saves all the defined functions - including 'fed' and 'uninstall_fed' - to ~/.bash_functions
 saf
 
 # Saves all defined aliases - including 'sal' and 'saf' - to ~/.bash_aliases
@@ -45,21 +45,21 @@ sal
 Copy and paste this command into your terminal:
 
 ```bash
-uninstall_fdef
+uninstall_fed
 ```
 
-This will remove aliases `sal` and `saf`, functions `fdef`, `uninstall_fdef`, and `_fdef_completion`, bash completion for `fdef`, and auto-load entries from `~/.bashrc`. It will also ask whether to remove `~/.bash_aliases` and `~/.bash_functions`. You can reinstall at any time as explained in the [Installing](#-installing) section.
+This will remove aliases `sal` and `saf`, functions `fed`, `uninstall_fed`, and `_fed_completion`, bash completion for `fed`, and auto-load entries from `~/.bashrc`. It will also ask whether to remove `~/.bash_aliases` and `~/.bash_functions`. You can reinstall at any time as explained in the [Installing](#-installing) section.
 
 ## 📖 What it provides
 
-### `fdef` - Function Define
+### `fed` - Function Define
 
 Command to create or modify bash functions interactively.
 
 **Syntax:**
 
 ```bash
-fdef function_name
+fed function_name
 ```
 
 **Behavior:**
@@ -68,7 +68,7 @@ fdef function_name
 - If the function **already exists**: loads it into the editor for modification
 - After saving, loads the (possibly renamed) function into the current shell (only for the current session)
 - Automatically detects if changes were made (via MD5 hash)
-- Tab completion suggests existing function names when typing `fdef <TAB>`
+- Tab completion suggests existing function names when typing `fed <TAB>`
 
 ### `sal` - Save ALiases
 
@@ -113,7 +113,7 @@ Saves all functions in the current shell to the `~/.bash_functions` file to make
 ### 1. Create a new function
 
 ```bash
-$ fdef mytest
+$ fed mytest
 Creating new function: 'mytest'.
 # Opens the editor with a template
 ```
@@ -159,7 +159,7 @@ Now the function is saved in `~/.bash_functions`.
 ## 🔧 Editing existing functions
 
 ```bash
-$ fdef oldfunc
+$ fed oldfunc
 Editing existing function: 'oldfunc'.
 # Opens the editor with the current definition
 ```
@@ -190,7 +190,7 @@ No changes detected. Function 'oldfunc' was not sourced.
 
 ### Default editor
 
-`fdef` uses the editor specified in the `$EDITOR` environment variable. If not set, it uses `vi` as a fallback.
+`fed` uses the editor specified in the `$EDITOR` environment variable. If not set, it uses `vi` as a fallback.
 
 To set your preferred editor, add to your `~/.bashrc`:
 
@@ -220,7 +220,7 @@ export EDITOR=nano    # or vim, emacs, code, etc.
 ### Create a function for quick navigation
 
 ```bash
-$ fdef goto
+$ fed goto
 # In the editor:
 goto() {
   case "$1" in
@@ -234,7 +234,7 @@ goto() {
 ### Create a function with parameters
 
 ```bash
-$ fdef backup
+$ fed backup
 # In the editor:
 backup() {
   local source="$1"
