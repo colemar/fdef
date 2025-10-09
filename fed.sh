@@ -59,7 +59,8 @@ fed () {
   fi
   local temp_file=$(mktemp --suffix=.sh)
   if declare -f "$func_name" > /dev/null; then
-    # Extract function definition from session and halve the indentation
+    # Extract function definition from session and halve the indentation.
+    # The regex ^([[:space:]]+)\1 -> \1 matches two identical indentation blocks and keeps one.
     declare -f "$func_name" | sed -E 's/^([[:space:]]+)\1/\1/' > "$temp_file"
     echo "Editing existing function: '${func_name}'."
   else
