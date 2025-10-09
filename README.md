@@ -11,11 +11,11 @@ A simple and practical system for creating and editing bash functions interactiv
 - [📖 What it provides](#-what-it-provides)
 - [💡 Typical Workflow](#-typical-workflow)
 - [🔧 Editing existing functions](#-editing-existing-functions)
-- [🚫 Using forbidden names](#-using-forbidden-names)
+- [🚫 Forbidden names](#-forbidden-names)
 - [⚙️ Configuration](#config)
 - [📋 Features](#-features)
 - [🛡️ Safety and Best Practices](#sabp)
-- [⚠️ Limitations](#limit)
+- [⚠️ Limitations](#-limitations)
 - [🤝 Contributing](#-contributing)
 - [👤 Author](#-author)
 
@@ -190,7 +190,7 @@ If you exit the editor without changes:
 No changes detected. Function 'oldfunc' was not sourced.
 ```
 
-## 🚫 Using forbidden names
+## 🚫 Forbidden names
 
 If the given name is already an *alias*, a *keyword*, a *builtin*, or an executable *file*, an error message is printed and the workflow is stopped:
 
@@ -263,7 +263,7 @@ backup() {
 }
 ```
 
-## ⚠️ <a name="limit"></a>Limitations
+## ⚠️ Limitations
 
 - You **should not** edit `~/.bash_aliases` nor `~/.bash_functions`, they will be overwritten by `sal` and `saf` respectively.
 
