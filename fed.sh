@@ -8,10 +8,21 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   exit 1
 fi
 
-alias sal &> /dev/null && { echo "Alias 'sal' already exists. Will not overwrite it. Aborted installation." >&2; return 1; }
-alias saf &> /dev/null && { echo "Alias 'saf' already exists. Will not overwrite it. Aborted installation." >&2; return 1; }
-declare -f fed &> /dev/null && { echo "Function 'fed' already exists. Will not overwrite it. Aborted installation." >&2; return 1; }
-declare -f uninstall_fed &> /dev/null && { echo "Function 'uninstall_fed' already exists. Will not overwrite it. Aborted installation." >&2; return 1; }
+if type _check_fed_names &>/dev/null; then
+  echo "Error: cannot define function _check_fed_names because it exists already as type '$(type -t _check_fed_names)'" >&2
+  return 1
+fi
+_check_fed_names() {
+  local name
+  for name in "$@"; do
+    if type $name &>/dev/null; then
+      echo "Error: cannot define '$name' because it exists already as type '$(type -t $name)'" >&2
+      return 1
+    fi
+  done
+}
+
+_check_fed_names sal saf _check_fed_name fed _fed_completion uninstall_fed
 
 alias sal='alias > ~/.bash_aliases'
 alias saf='declare -f > ~/.bash_functions'
@@ -34,40 +45,52 @@ if [[ -f ~/.bashrc ]]; then
 
 fi
 
-fed ()
-{
+# Helper function to check if a word is a valid function name
+_check_fed_name() {
+  # a word is a valid function name if and only if it is a valid variable name
+  local "$1"="" || return 1
+}
+
+fed () {
   if [[ -z "$1" ]]; then
-    echo "Error: Please provide a function name (e.g. fed myfunction)." 1>&2;
-    return 1;
-  fi;
-  local func_name="$1";
+    echo "Error: Please provide a function name (e.g. fed myfunction)." >&2
+    return 1
+  fi
+  local func_name="$1"
+  if ! _check_fed_name "$func_name"; then
+    echo "Error: invalid function name '$func_name'" >&2
+    return 1
+  fi
   local t=$(type -t "$func_name")
   if ! [[ "$t" == "" || "$t" == function ]]; then
     echo "Error: '$func_name' exists and is of type '$t'" >&2
     return 1
   fi
-  local temp_file=$(mktemp --suffix=.sh);
+  local temp_file=$(mktemp --suffix=.sh)
   if declare -f "$func_name" > /dev/null; then
-    declare -f "$func_name" | sed -E 's/^([[:space:]]+)\1/\1/' > "$temp_file";
-    echo "Editing existing function: '${func_name}'.";
+    declare -f "$func_name" | sed -E 's/^([[:space:]]+)\1/\1/' > "$temp_file"
+    echo "Editing existing function: '${func_name}'."
   else
-    echo -e "${func_name}()\n{\n\n  # Function logic here\n  echo \"Function ${func_name} executed.\"\n\n}" > "$temp_file";
-    echo "Creating new function: '${func_name}'.";
-  fi;
-  local initial_hash _;
-  read initial_hash _ <<< $(md5sum "$temp_file");
-  ${EDITOR:-vi} "$temp_file";
-  local final_hash;
-  read final_hash _ <<< $(md5sum "$temp_file");
+    echo -e "${func_name}()\n{\n\n  # Function logic here\n  echo \"Function ${func_name} executed.\"\n\n}" > "$temp_file"
+    echo "Creating new function: '${func_name}'."
+  fi
+  local initial_hash _
+  read initial_hash _ <<< $(md5sum "$temp_file")
+  ${EDITOR:-vi} "$temp_file"
+  local final_hash
+  read final_hash _ <<< $(md5sum "$temp_file")
   if [[ "$initial_hash" == "$final_hash" ]]; then
-    echo "No changes detected. Function '${func_name}' was not sourced." 1>&2;
+    echo "No changes detected. Function '${func_name}' was not sourced." >&2
   else
-    source "$temp_file";
-    local funcname
-    read funcname _ < "$temp_file"
-    echo "Function '${funcname}' successfully sourced (temporarily).";
-    echo "Remember to use 'saf' (declare -f > ~/.bash_functions) to save it permanently.";
-  fi;
+    read -r func_name < "$temp_file"
+    func_name=${func_name%%(*}; func_name=${func_name##*([[:space:]])}; func_name=${func_name%%*([[:space:]])}
+    if source "$temp_file"; then
+      echo "Function '${func_name}' successfully sourced (temporarily)."
+    else
+      echo "Error: sourcing failed" >&2
+    fi
+    echo "Remember to use 'saf' (declare -f > ~/.bash_functions) to save it permanently."
+  fi
   rm -f "$temp_file"
 }
 echo "Defined function fed."
@@ -80,22 +103,18 @@ complete -F _fed_completion fed
 echo "Bash completion for fed enabled."
 
 uninstall_fed() {
-  echo "Undefining sal, saf, fed, _fed_completion, uninstall_fed ..."
+  echo "Undefining sal, saf, fed, uninstall_fed ..."
 
   # Remove aliases and function definitions from current session
-  unalias sal 2>/dev/null
-  unalias saf 2>/dev/null
-  unset -f fed 2>/dev/null
-  unset -f uninstall_fed 2>/dev/null
-  unset -f _fed_completion 2>/dev/null
+  unalias sal saf 2>/dev/null
+  unset -f fed uninstall_fed _fed_completion _check_fed_names _check_fed_name 2>/dev/null
 
   # Remove fed completions from current session
   complete -r fed 2>/dev/null
 
   # Remove fed-related definitions from ~/.bash_aliases
   if [[ -f ~/.bash_aliases ]]; then
-    cp ~/.bash_aliases ~/.bash_aliases.bak
-    alias > ~/.bash_aliases
+    sed -i.bak -e '/^alias sal=/d' -e '/^alias saf=/d' ~/.bash_aliases
     echo "Removed 'sal' and 'saf' from ~/.bash_aliases (backup: ~/.bash_aliases.bak)."
   fi
 
