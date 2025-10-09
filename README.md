@@ -10,6 +10,8 @@ A simple and practical system for creating and editing bash functions interactiv
 - [🧹 Uninstall](#-uninstall)
 - [📖 What it provides](#-what-it-provides)
 - [💡 Typical Workflow](#-typical-workflow)
+- [🔧 Editing existing functions](#-editing-existing-functions)
+- [🚫 Using forbidden names](#-using-forbidden-names)
 - [⚙️ Configuration](#config)
 - [📋 Features](#-features)
 - [🛡️ Safety and Best Practices](#sabp)
@@ -52,7 +54,7 @@ This will remove aliases `sal` and `saf`, functions `fed`, `uninstall_fed`, and 
 
 ## 📖 What it provides
 
-### `fed` - Function Define
+### `fed` - Function Edit
 
 Command to create or modify bash functions interactively.
 
@@ -64,6 +66,7 @@ fed function_name
 
 **Behavior:**
 
+- If an *alias*, a *keyword*, a *builtin*, or an executable *file* named `function_name` **already exists**: shows an error message and stops
 - If the function **doesn't exist**: creates a basic template and opens the editor
 - If the function **already exists**: loads it into the editor for modification
 - After saving, loads the (possibly renamed) function into the current shell (only for the current session)
@@ -184,6 +187,21 @@ If you exit the editor without changes:
 
 ```bash
 No changes detected. Function 'oldfunc' was not sourced.
+```
+
+## 🚫 Using forbidden names
+
+If the given name is already an *alias*, a *keyword*, a *builtin*, or an executable *file*, an error message is printed and the workflow is stopped:
+
+```bash
+$ fed help
+Error: 'help' exists and is of type 'builtin'
+
+$ fed sed
+Error: 'sed' exists and is of type 'file'
+
+$ fed case
+Error: 'case' exists and is of type 'keyword'
 ```
 
 ## ⚙️ <a name="config"></a>Configuration

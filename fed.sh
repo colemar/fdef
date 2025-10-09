@@ -41,6 +41,11 @@ fed ()
     return 1;
   fi;
   local func_name="$1";
+  local t=$(type -t "$func_name")
+  if ! [[ "$t" == "" || "$t" == function ]]; then
+    echo "Error: '$func_name' exists and is of type '$t'" >&2
+    return 1
+  fi
   local temp_file=$(mktemp --suffix=.sh);
   if declare -f "$func_name" > /dev/null; then
     declare -f "$func_name" | sed -E 's/^([[:space:]]+)\1/\1/' > "$temp_file";
