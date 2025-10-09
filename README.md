@@ -6,7 +6,7 @@ A simple and practical system for creating and editing bash functions interactiv
 
 ## 📑 Table of Contents
 
-- [🚀 Installation](#-installation)
+- [🚀 Installing](#-installing)
 - [🧹 Uninstall](#-uninstall)
 - [📖 What it provides](#-what-it-provides)
 - [💡 Typical Workflow](#-typical-workflow)
@@ -16,7 +16,7 @@ A simple and practical system for creating and editing bash functions interactiv
 - [🤝 Contributing](#-contributing)
 - [👤 Author](#-author)
 
-## 🚀 Installation
+## 🚀 Installing
 
 #### Step 1: Run the installer
 
@@ -40,7 +40,7 @@ saf
 sal
 ```
 
-## 🧹 Uninstall
+## 🧹 Uninstalling
 
 Copy and paste this command into your terminal:
 
@@ -48,7 +48,7 @@ Copy and paste this command into your terminal:
 uninstall_fdef
 ```
 
-This will remove aliases `sal` and `saf`, functions `fdef`, `uninstall_fdef`, and `_fdef_completion`, bash completion for `fdef`, and auto-load entries from `~/.bashrc`. It will also ask whether to remove `~/.bash_aliases` and `~/.bash_functions`. You can reinstall at any time using the command above.
+This will remove aliases `sal` and `saf`, functions `fdef`, `uninstall_fdef`, and `_fdef_completion`, bash completion for `fdef`, and auto-load entries from `~/.bashrc`. It will also ask whether to remove `~/.bash_aliases` and `~/.bash_functions`. You can reinstall at any time as explained in the [Installing](#-installing) section.
 
 ## 📖 What it provides
 
