@@ -15,7 +15,7 @@ A simple and practical system for creating and editing bash functions interactiv
 - [⚙️ Configuration](#config)
 - [📋 Features](#-features)
 - [🛡️ Safety and Best Practices](#sabp)
-- [⚠️ Limitations](#-limitations)
+- [⚠️ Limitations](#limit)
 - [🤝 Contributing](#-contributing)
 - [👤 Author](#-author)
 
@@ -263,7 +263,7 @@ backup() {
 }
 ```
 
-## ⚠️ Limitations
+## ⚠️ <a name="limit"></a>Limitations
 
 - You **should not** edit `~/.bash_aliases` nor `~/.bash_functions`, they will be overwritten by `sal` and `saf` respectively.
 
