@@ -7,7 +7,7 @@ A simple and practical system for creating and editing bash functions interactiv
 ## 📑 Table of Contents
 
 - [🚀 Installing](#-installing)
-- [🧹 Uninstall](#-uninstall)
+- [🧹 Uninstalling](#-uninstalling)
 - [📖 What it provides](#-what-it-provides)
 - [💡 Typical Workflow](#-typical-workflow)
 - [🔧 Editing existing functions](#-editing-existing-functions)
