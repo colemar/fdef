@@ -23,8 +23,6 @@ sal() {
   if [[ -f "$file" ]]; then
     local file_mtime=$(stat -c %Y "$file")
     # Use >= instead of > for safety: protects against modifications in the same second
-    # Note: the first sal in a new session will always create a backup (even if not needed),
-    # but this is preferable to risking loss of external modifications
     if [[ -z "$_last_sal" ]] || (( file_mtime >= _last_sal )); then
       needs_backup=true
     fi
@@ -36,9 +34,11 @@ sal() {
     echo "Backup created: ${file}.backup-$(date +%Y%m%d-%H%M%S)"
   fi
   
-  # Save aliases
-  alias > "$file"
+  # Set timestamp first to detect concurrent modifications correctly
   _last_sal=$(date +%s)
+  # Save aliases and add timestamp initialization
+  alias > "$file"
+  echo '_last_sal=$(date +%s)' >> "$file"
   echo "Aliases saved to $file"
 }
 
@@ -50,8 +50,6 @@ saf() {
   if [[ -f "$file" ]]; then
     local file_mtime=$(stat -c %Y "$file")
     # Use >= instead of > for safety: protects against modifications in the same second
-    # Note: the first saf in a new session will always create a backup (even if not needed),
-    # but this is preferable to risking loss of external modifications
     if [[ -z "$_last_saf" ]] || (( file_mtime >= _last_saf )); then
       needs_backup=true
     fi
@@ -63,9 +61,11 @@ saf() {
     echo "Backup created: ${file}.backup-$(date +%Y%m%d-%H%M%S)"
   fi
   
-  # Save functions
-  declare -f > "$file"
+  # Set timestamp first to detect concurrent modifications correctly
   _last_saf=$(date +%s)
+  # Save functions and add timestamp initialization
+  declare -f > "$file"
+  echo '_last_saf=$(date +%s)' >> "$file"
   echo "Functions saved to $file"
 }
 
@@ -194,16 +194,17 @@ uninstall_fed() {
     fi
   fi
 
-  # Offer to delete the saved alias and function files
-  for file in ~/.bash_aliases ~/.bash_functions; do
-    if [[ -f "$file" ]]; then
-      read -rp "Delete $file? [y/N] " reply
-      [[ "$reply" =~ ^[Yy]$ ]] && rm -f "$file" && echo "Deleted $file."
-    fi
-  done
+  echo ""
+  echo "Note: ~/.bash_aliases and ~/.bash_functions have been left intact."
+  echo "You can delete them manually if needed."
 
   echo "Uninstallation completed."
 }
 echo "Defined function uninstall_fed."
+
+# Save tools permanently
+echo "Saving installation..."
+saf
+sal
 
 echo "Installation completed."
