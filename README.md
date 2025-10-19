@@ -29,17 +29,17 @@ Copy and paste this command into your terminal:
 source <(curl -sL https://raw.githubusercontent.com/colemar/fed/main/fed.sh)
 ```
 
-This will load aliases `sal` `saf` and functions `fed` `uninstall_fed` into your current session. It will also enable bash completion for `fed` and modify your `~/.bashrc` file to automatically load your functions and aliases in future sessions.
+This will load functions `sal`, `saf`, `fed`, and `uninstall_fed` into your current session. It will also save bash completion for `fed` to `~/.local/share/bash-completion/completions/fed` and modify your `~/.bashrc` file to automatically load your functions and aliases in future sessions.
 
 #### Step 2: Save the tools for future sessions
 
 After running the installer, the new tools are available, but only for the current session. Run these two commands to save them permanently:
 
 ```bash
-# Saves all the defined functions - including 'fed' and 'uninstall_fed' - to ~/.bash_functions
+# Saves all the defined functions - including 'sal', 'saf', 'fed' and 'uninstall_fed' - to ~/.bash_functions
 saf
 
-# Saves all defined aliases - including 'sal' and 'saf' - to ~/.bash_aliases
+# Saves all defined aliases to ~/.bash_aliases (if you have any)
 sal
 ```
 
@@ -51,7 +51,7 @@ Copy and paste this command into your terminal:
 uninstall_fed
 ```
 
-This will remove aliases `sal` and `saf`, functions `fed`, `uninstall_fed`, and `_fed_completion`, bash completion for `fed`, and auto-load entries from `~/.bashrc`. It will also ask whether to remove `~/.bash_aliases` and `~/.bash_functions`. You can reinstall at any time as explained in the [Installing](#-installing) section.
+This will remove functions `sal`, `saf`, `fed`, `uninstall_fed`, and `_fed_completion`, the completion file `~/.local/share/bash-completion/completions/fed`, and auto-load entries from `~/.bashrc`. It will also ask whether to remove `~/.bash_aliases` and `~/.bash_functions`. You can reinstall at any time as explained in the [Installing](#-installing) section.
 
 ## 📖 What it provides
 
@@ -76,7 +76,7 @@ fed function_name
 
 ### `sal` - Save ALiases
 
-Alias to save all currently defined aliases.
+Function to save all currently defined aliases.
 
 **Syntax:**
 
@@ -89,13 +89,16 @@ sal
 ```bash
 # Equivalent to:
 alias > ~/.bash_aliases
+# Except that it makes a timestamped backup if required
 ```
 
 Takes a *snapshot* of all aliases currently defined in the shell and saves it to `~/.bash_aliases`, making them permanent across sessions.
 
+If the file is newer than the last use of `sal`, a timestamped backup is made before overwriting it.
+
 ### `saf` - Save All Functions
 
-Alias to save all currently defined bash functions.
+Function to save all currently defined bash functions.
 
 **Syntax:**
 
@@ -108,9 +111,12 @@ saf
 ```bash
 # Equivalent to:
 declare -f > ~/.bash_functions
+# Except that it makes a timestamped backup if required
 ```
 
 Takes a *snapshot* of all currently defined bash functions and saves it to `~/.bash_functions`, making them permanent across sessions.
+
+If the file is newer than the last use of `saf`, a timestamped backup is made before overwriting it.
 
 ## 💡 Typical Workflow
 
@@ -226,6 +232,7 @@ export EDITOR=nano    # or vim, emacs, code, etc.
 - ✅ **Automatic cleanup**: removes temporary files
 - ✅ **Smart template**: creates ready-to-use functions
 - ✅ **Tab completion**: suggests function names while typing
+- ✅ **Multi-session protection**: automatic backups prevent data loss
 
 ## 🛡️ <a name="sabp"></a>Safety and Best Practices
 
@@ -265,9 +272,20 @@ backup() {
 
 ## ⚠️ Limitations
 
-- You **should not** edit `~/.bash_aliases` nor `~/.bash_functions`, they will be overwritten by `sal` and `saf` respectively.
+- The `sal` and `saf` commands work by taking a full *snapshot* of the current shell state (aliases and functions). **They are not incremental tools** – each snapshot completely replaces the corresponding file.
 
-- The `sal` and `saf` commands work by taking a full *snapshot* of the current shell state (aliases and functions). **They are not incremental tools** — each snapshot completely replaces the corresponding file.
+- **Multi-session safety**: `sal` and `saf` include automatic backup protection. When you run `sal` or `saf`, if the target file (`~/.bash_aliases` or `~/.bash_functions`) has been modified by another session since your last save, a timestamped backup is automatically created before overwriting. This protects against accidental loss of changes made in other terminal sessions.
+  
+  Example: If another session modifies `~/.bash_functions` and you run `saf`, you'll see:
+  
+  ```
+  Backup created: ~/.bash_functions.backup-20250119-143022
+  Functions saved to ~/.bash_functions
+  ```
+  
+  Note: The first `sal`/`saf` in a new session will always create a backup as a safety measure, even if no external changes were detected.
+
+- If you manually edit `~/.bash_aliases` or `~/.bash_functions`, the next execution of `sal` or `saf` will create a timestamped backup before overwriting the files. However, it's recommended to use `fed` for functions and define aliases interactively in the shell, then use `sal`/`saf` to save them.
 
 - **Formatting is not preserved**: When editing a function, bash reformats the code automatically due to how functions are stored internally.  This means:
   

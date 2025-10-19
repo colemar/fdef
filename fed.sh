@@ -15,22 +15,72 @@ for _name in sal saf _check_fed_name fed _fed_completion uninstall_fed; do
   fi
 done
 
-alias sal='alias > ~/.bash_aliases'
-alias saf='declare -f > ~/.bash_functions'
-echo "Defined aliases: sal, saf."
-alias sal
-alias saf
+sal() {
+  local file=~/.bash_aliases
+  local needs_backup=false
+  
+  # Check if file exists and has been modified by another session
+  if [[ -f "$file" ]]; then
+    local file_mtime=$(stat -c %Y "$file")
+    # Use >= instead of > for safety: protects against modifications in the same second
+    # Note: the first sal in a new session will always create a backup (even if not needed),
+    # but this is preferable to risking loss of external modifications
+    if [[ -z "$_last_sal" ]] || (( file_mtime >= _last_sal )); then
+      needs_backup=true
+    fi
+  fi
+  
+  # Backup if necessary
+  if [[ "$needs_backup" == true ]]; then
+    cp "$file" "${file}.backup-$(date +%Y%m%d-%H%M%S)"
+    echo "Backup created: ${file}.backup-$(date +%Y%m%d-%H%M%S)"
+  fi
+  
+  # Save aliases
+  alias > "$file"
+  _last_sal=$(date +%s)
+  echo "Aliases saved to $file"
+}
+
+saf() {
+  local file=~/.bash_functions
+  local needs_backup=false
+  
+  # Check if file exists and has been modified by another session
+  if [[ -f "$file" ]]; then
+    local file_mtime=$(stat -c %Y "$file")
+    # Use >= instead of > for safety: protects against modifications in the same second
+    # Note: the first saf in a new session will always create a backup (even if not needed),
+    # but this is preferable to risking loss of external modifications
+    if [[ -z "$_last_saf" ]] || (( file_mtime >= _last_saf )); then
+      needs_backup=true
+    fi
+  fi
+  
+  # Backup if necessary
+  if [[ "$needs_backup" == true ]]; then
+    cp "$file" "${file}.backup-$(date +%Y%m%d-%H%M%S)"
+    echo "Backup created: ${file}.backup-$(date +%Y%m%d-%H%M%S)"
+  fi
+  
+  # Save functions
+  declare -f > "$file"
+  _last_saf=$(date +%s)
+  echo "Functions saved to $file"
+}
+
+echo "Defined functions: sal, saf."
 
 # Add source statements to .bashrc if not already present
 if [[ -f ~/.bashrc ]]; then
 
   if ! grep -q "\.bash_functions" ~/.bashrc; then
-    echo '[ -f ~/.bash_functions ] && source ~/.bash_functions # Added by fed installer' >> ~/.bashrc
+    echo '[[ -f ~/.bash_functions ]] && source ~/.bash_functions # Added by fed installer' >> ~/.bashrc
     echo "Auto-load '~/.bash_functions' statement added to ~/.bashrc."
   fi
 
   if ! grep -q "\.bash_aliases" ~/.bashrc; then
-    echo '[ -f ~/.bash_aliases ] && source ~/.bash_aliases # Added by fed installer' >> ~/.bashrc
+    echo '[[ -f ~/.bash_aliases ]] && source ~/.bash_aliases # Added by fed installer' >> ~/.bashrc
     echo "Auto-load '~/.bash_aliases' statement added to ~/.bashrc."
   fi
 
@@ -88,12 +138,26 @@ fed () {
 }
 echo "Defined function fed."
 
+# Save completion to standard location
+mkdir -p ~/.local/share/bash-completion/completions/
+cat > ~/.local/share/bash-completion/completions/fed << 'EOF'
+# Bash completion for fed
 _fed_completion() {
   local cur="${COMP_WORDS[COMP_CWORD]}"
   readarray -t COMPREPLY < <(compgen -A function -- "$cur")
 }
 complete -F _fed_completion fed
+EOF
+
+# Load completion for current session
+source ~/.local/share/bash-completion/completions/fed
 echo "Bash completion for fed enabled."
+
+# Add fallback only if bash-completion is not available
+if [[ -z "$BASH_COMPLETION_VERSINFO" ]] && ! grep -q "completions/fed" ~/.bashrc; then
+  echo '[[ -f ~/.local/share/bash-completion/completions/fed ]] && source ~/.local/share/bash-completion/completions/fed # Added by fed installer' >> ~/.bashrc
+  echo "Added fallback completion loader to ~/.bashrc (bash-completion not detected)."
+fi
 
 uninstall_fed() {
   echo "Undefining sal, saf, fed, uninstall_fed ..."
@@ -101,21 +165,23 @@ uninstall_fed() {
   # Remove fed completions from current session
   complete -r fed 2>/dev/null
 
-  # Remove aliases and function definitions from current session
-  unalias sal saf 2>/dev/null
-  unset -f _check_fed_name fed _fed_completion uninstall_fed 2>/dev/null
-
-  # Remove fed-related definitions from ~/.bash_aliases
-  if [[ -f ~/.bash_aliases ]]; then
-    sed -i.bak -e '/^alias sal=/d' -e '/^alias saf=/d' ~/.bash_aliases
-    echo "Removed 'sal' and 'saf' from ~/.bash_aliases (backup: ~/.bash_aliases.bak)."
-  fi
+  # Remove function definitions from current session
+  unset -f sal saf _check_fed_name fed _fed_completion uninstall_fed 2>/dev/null
+  
+  # Remove timestamp variables
+  unset _last_sal _last_saf 2>/dev/null
 
   # Remove fed-related definitions from ~/.bash_functions
   if [[ -f ~/.bash_functions ]]; then
     cp ~/.bash_functions ~/.bash_functions.bak
     declare -f > ~/.bash_functions
-    echo "Removed 'fed' and 'uninstall_fed' from ~/.bash_functions (backup: ~/.bash_functions.bak)."
+    echo "Removed 'sal', 'saf', 'fed' and 'uninstall_fed' from ~/.bash_functions (backup: ~/.bash_functions.bak)."
+  fi
+
+  # Remove completion file
+  if [[ -f ~/.local/share/bash-completion/completions/fed ]]; then
+    rm -f ~/.local/share/bash-completion/completions/fed
+    echo "Removed ~/.local/share/bash-completion/completions/fed"
   fi
 
   # Remove autoload lines from .bashrc (only if present)
