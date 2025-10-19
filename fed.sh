@@ -17,26 +17,16 @@ done
 
 sal() {
   local file=~/.bash_aliases
-  local needs_backup=false
-  
-  # Check if file exists and has been modified by another session
-  if [[ -f "$file" ]]; then
-    local file_mtime=$(stat -c %Y "$file")
-    # Use >= instead of > for safety: protects against modifications in the same second
-    if [[ -z "$_last_sal" ]] || (( file_mtime >= _last_sal )); then
-      needs_backup=true
-    fi
+
+  # If file exists and has been modified by another session, make a backup
+  if (( $(stat -c %Y "$file") > ${_last_sal:-0} )) &>/dev/null; then
+    local bfile="${file}.backup-$(date +%Y%m%d-%H%M%S)"
+    cp "$file" "$bfile"
+    echo "Backup created: $bfile"
   fi
-  
-  # Backup if necessary
-  if [[ "$needs_backup" == true ]]; then
-    cp "$file" "${file}.backup-$(date +%Y%m%d-%H%M%S)"
-    echo "Backup created: ${file}.backup-$(date +%Y%m%d-%H%M%S)"
-  fi
-  
-  # Set timestamp first to detect concurrent modifications correctly
-  _last_sal=$(date +%s)
+
   # Save aliases and add timestamp initialization
+  _last_sal=$(date +%s)
   alias > "$file"
   echo '_last_sal=$(date +%s)' >> "$file"
   echo "Aliases saved to $file"
@@ -44,26 +34,16 @@ sal() {
 
 saf() {
   local file=~/.bash_functions
-  local needs_backup=false
-  
-  # Check if file exists and has been modified by another session
-  if [[ -f "$file" ]]; then
-    local file_mtime=$(stat -c %Y "$file")
-    # Use >= instead of > for safety: protects against modifications in the same second
-    if [[ -z "$_last_saf" ]] || (( file_mtime >= _last_saf )); then
-      needs_backup=true
-    fi
+
+  # If file exists and has been modified by another session, make a backup
+  if (( $(stat -c %Y "$file") > ${_last_saf:-0} )) &>/dev/null; then
+    local bfile="${file}.backup-$(date +%Y%m%d-%H%M%S)"
+    cp "$file" "$bfile"
+    echo "Backup created: $bfile"
   fi
-  
-  # Backup if necessary
-  if [[ "$needs_backup" == true ]]; then
-    cp "$file" "${file}.backup-$(date +%Y%m%d-%H%M%S)"
-    echo "Backup created: ${file}.backup-$(date +%Y%m%d-%H%M%S)"
-  fi
-  
-  # Set timestamp first to detect concurrent modifications correctly
-  _last_saf=$(date +%s)
+
   # Save functions and add timestamp initialization
+  _last_saf=$(date +%s)
   declare -f > "$file"
   echo '_last_saf=$(date +%s)' >> "$file"
   echo "Functions saved to $file"
@@ -73,6 +53,9 @@ echo "Defined functions: sal, saf."
 
 # Add source statements to .bashrc if not already present
 if [[ -f ~/.bashrc ]]; then
+
+  cp ~/.bashrc ~/.bashrc.bak
+  echo "Made backup of ~/.bashrc as ~/.bashrc.bak."
 
   if ! grep -q "\.bash_functions" ~/.bashrc; then
     echo '[[ -f ~/.bash_functions ]] && source ~/.bash_functions # Added by fed installer' >> ~/.bashrc
@@ -103,7 +86,7 @@ fed () {
     return 1
   fi
   local t=$(type -t "$func_name")
-  if ! [[ "$t" == "" || "$t" == function ]]; then
+  if [[ ! "$t" == "" && ! "$t" == function ]]; then
     echo "Error: '$func_name' exists and is of type '$t'" >&2
     return 1
   fi
@@ -117,23 +100,39 @@ fed () {
     echo -e "${func_name}()\n{\n\n  # Function logic here\n  echo \"Function ${func_name} executed.\"\n\n}" > "$temp_file"
     echo "Creating new function: '${func_name}'."
   fi
-  local initial_hash _
-  read -r initial_hash _ <<< $(md5sum "$temp_file")
-  ${EDITOR:-vi} "$temp_file"
-  local final_hash
-  read -r final_hash _ <<< $(md5sum "$temp_file")
-  if [[ "$initial_hash" == "$final_hash" ]]; then
-    echo "No changes detected. Function '${func_name}' was not sourced." >&2
-  else
+  local initial_hash final_hash answer x
+  while true; do
+    read -r initial_hash x <<< $(md5sum "$temp_file")
+    ${EDITOR:-vi} "$temp_file"
+    local final_hash
+    read -r final_hash x <<< $(md5sum "$temp_file")
+    if [[ "$initial_hash" == "$final_hash" ]]; then
+      echo "No changes detected. Function '${func_name}' was not sourced." >&2
+      read -r -p "Try again? [Y/n]" answer
+      [[ "$answer" == [nN] ]] && break || continue
+    fi
     read -r func_name < "$temp_file"
     func_name=${func_name%%(*}; func_name=${func_name##*([[:space:]])}; func_name=${func_name%%*([[:space:]])}
-    if source "$temp_file"; then
-      echo "Function '${func_name}' successfully sourced (temporarily)."
-      echo "Remember to use 'saf' (declare -f > ~/.bash_functions) to save it permanently."
-    else
-      echo "Error: sourcing failed" >&2
+    # If func_name is valid, source $temp_file and go on
+    if ! _check_fed_name "$func_name"; then
+      echo "Error: invalid function name '${func_name}'" >&2
+      read -r -p "Try again? [Y/n]" answer
+      [[ "$answer" == [nN] ]] && break || continue
     fi
-  fi
+    t=$(type -t "$func_name")
+    if [[ ! "$t" == "" && ! "$t" == function ]]; then
+      echo "Error: '$func_name' exists and is of type '$t'" >&2
+      read -r -p "Try again? [Y/n]" answer
+      [[ "$answer" == [nN] ]] && break || continue
+    fi
+    if ! source "$temp_file"; then
+      echo "Error: sourcing failed" >&2
+      read -r -p "Try again? [Y/n]" answer
+      [[ "$answer" == [nN] ]] && break || continue
+    fi
+    echo "Function '${func_name}' successfully sourced (temporarily)."
+    echo "Remember to use 'saf' (declare -f > ~/.bash_functions) to save it permanently."
+  done
   rm -f "$temp_file"
 }
 echo "Defined function fed."
@@ -167,15 +166,17 @@ uninstall_fed() {
 
   # Remove function definitions from current session
   unset -f sal saf _check_fed_name fed _fed_completion uninstall_fed 2>/dev/null
-  
+
   # Remove timestamp variables
   unset _last_sal _last_saf 2>/dev/null
 
   # Remove fed-related definitions from ~/.bash_functions
-  if [[ -f ~/.bash_functions ]]; then
-    cp ~/.bash_functions ~/.bash_functions.bak
-    declare -f > ~/.bash_functions
-    echo "Removed 'sal', 'saf', 'fed' and 'uninstall_fed' from ~/.bash_functions (backup: ~/.bash_functions.bak)."
+  local file=~/.bash_functions
+  if [[ -f $file ]]; then
+    local bfile=$file.backup-$(date +%Y%m%d-%H%M%S)
+    cp $file $bfile
+    declare -f > $file
+    echo "Removed 'sal', 'saf', 'fed' and 'uninstall_fed' from $file (backup: $bfile)."
   fi
 
   # Remove completion file
@@ -187,16 +188,12 @@ uninstall_fed() {
   # Remove autoload lines from .bashrc (only if present)
   if [[ -f ~/.bashrc ]]; then
     if grep -q 'Added by fed installer' ~/.bashrc; then
-      sed -i.bak '/Added by fed installer/d' ~/.bashrc
-      echo "Removed autoload entries from ~/.bashrc (backup: ~/.bashrc.bak)."
+      sed -i '/Added by fed installer/d' ~/.bashrc
+      echo "Removed autoload entries from ~/.bashrc."
     else
       echo "No autoload entries found in ~/.bashrc - nothing to remove."
     fi
   fi
-
-  echo ""
-  echo "Note: ~/.bash_aliases and ~/.bash_functions have been left intact."
-  echo "You can delete them manually if needed."
 
   echo "Uninstallation completed."
 }
@@ -205,6 +202,5 @@ echo "Defined function uninstall_fed."
 # Save tools permanently
 echo "Saving installation..."
 saf
-sal
 
 echo "Installation completed."

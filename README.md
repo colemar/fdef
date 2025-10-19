@@ -27,7 +27,7 @@ Copy and paste this command into your terminal:
 source <(curl -sL https://raw.githubusercontent.com/colemar/fed/main/fed.sh)
 ```
 
-This will install and save `sal`, `saf`, `fed`, and `uninstall_fed` permanently. It will also save bash completion for `fed` to `~/.local/share/bash-completion/completions/fed` and modify your `~/.bashrc` file to automatically load your functions, aliases and completions in future sessions.
+This will install and save `sal`, `saf`, `fed`, and `uninstall_fed` permanently. It will also save bash completion for `fed` to `~/.local/share/bash-completion/completions/fed` and modify your `~/.bashrc` file to automatically load your functions, aliases and completions in future sessions. A backup of the file is created before this operation.
 
 ## 🧹 Uninstalling
 
@@ -37,7 +37,13 @@ Copy and paste this command into your terminal:
 uninstall_fed
 ```
 
-This will remove functions `sal`, `saf`, `fed`, `uninstall_fed`, and `_fed_completion`, the completion file `~/.local/share/bash-completion/completions/fed`, and auto-load entries from `~/.bashrc`. The files `~/.bash_aliases` and `~/.bash_functions` will be left intact (you can delete them manually if needed). You can reinstall at any time as explained in the [Installing](#-installing) section.
+This will remove functions `sal`, `saf`, `fed`, `uninstall_fed`, and `_fed_completion`, the completion file `~/.local/share/bash-completion/completions/fed`, and auto-load entries from `~/.bashrc`.
+
+Your custom aliases in `~/.bash_aliases` will be **left intact**.
+
+Your `~/.bash_functions` file will be safely **overwritten** with a new snapshot that excludes the `fed` functions but **preserves all your other custom functions**. A backup of the file is created before this operation.
+
+You can reinstall at any time as explained in the [Installing](#-installing) section.
 
 ## 📖 What it provides
 
