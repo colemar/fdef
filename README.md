@@ -7,7 +7,7 @@ A simple and practical system for creating and editing bash functions interactiv
 ## 📑 Table of Contents
 
 - [🚀 Installing](#-installing)
-- [🧹 Uninstall](#-uninstall)
+- [🧹 Uninstalling](#-uninstalling)
 - [📖 What it provides](#-what-it-provides)
 - [💡 Typical Workflow](#-typical-workflow)
 - [🔧 Editing existing functions](#-editing-existing-functions)
@@ -15,7 +15,7 @@ A simple and practical system for creating and editing bash functions interactiv
 - [⚙️ Configuration](#config)
 - [📋 Features](#-features)
 - [🛡️ Safety and Best Practices](#sabp)
-- [⚠️ Limitations](#-limitations)
+- [⚠️ Limitations](#limit)
 - [🤝 Contributing](#-contributing)
 - [👤 Author](#-author)
 
@@ -27,7 +27,7 @@ Copy and paste this command into your terminal:
 source <(curl -sL https://raw.githubusercontent.com/colemar/fed/main/fed.sh)
 ```
 
-This will install and save `sal`, `saf`, `fed`, and `uninstall_fed` permanently. It will also save bash completion for `fed` to `~/.local/share/bash-completion/completions/fed` and modify your `~/.bashrc` file to automatically load your functions and aliases in future sessions.
+This will install and save `sal`, `saf`, `fed`, and `uninstall_fed` permanently. It will also save bash completion for `fed` to `~/.local/share/bash-completion/completions/fed` and modify your `~/.bashrc` file to automatically load your functions, aliases and completions in future sessions.
 
 ## 🧹 Uninstalling
 
@@ -256,13 +256,14 @@ backup() {
 }
 ```
 
-## ⚠️ Limitations
+## ⚠️ <a name="limit"></a>Limitations
 
 - The `sal` and `saf` commands work by taking a full *snapshot* of the current shell state (aliases and functions). **They are not incremental tools** – each snapshot completely replaces the corresponding file.
 
 - **Multi-session safety**: `sal` and `saf` include automatic backup protection. When you run `sal` or `saf`, if the target file (`~/.bash_aliases` or `~/.bash_functions`) has been modified by another session since your last save, a timestamped backup is automatically created before overwriting. This protects against accidental loss of changes made in other terminal sessions.
-
+  
   Example: If another session modifies `~/.bash_functions` and you run `saf`, you'll see:
+  
   ```
   Backup created: ~/.bash_functions.backup-20250119-143022
   Functions saved to ~/.bash_functions
