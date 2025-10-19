@@ -132,6 +132,7 @@ fed () {
     fi
     echo "Function '${func_name}' successfully sourced (temporarily)."
     echo "Remember to use 'saf' (declare -f > ~/.bash_functions) to save it permanently."
+    break
   done
   rm -f "$temp_file"
 }
