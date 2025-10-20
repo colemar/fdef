@@ -299,6 +299,8 @@ backup() {
   
   - Empty lines and custom spacing are removed
 
+- **Beware of recursive aliases:** For example, if you have `alias ls='ls --color=auto'`, `declare -f` might expand `ls` every time it is run. After a few runs (e.g., triggered by `fed` or `saf`), `ls` can become `ls --color=auto --color=auto ...`. You should use `alias ls='\ls --color=auto'` instead.
+
 ## 🤝 Contributing
 
 Contributions, issues, and feature requests are welcome! Feel free to open an issue or pull request.
