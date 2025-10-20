@@ -62,8 +62,8 @@ fed function_name
 - If an *alias*, a *keyword*, a *builtin*, or an executable *file* named `function_name` **already exists**: shows an error message and stops
 - If the function **doesn't exist**: creates a basic template and opens the editor
 - If the function **already exists**: loads it into the editor for modification
-- After saving, loads the (possibly renamed) function into the current shell (only for the current session)
-- Automatically detects if changes were made (via MD5 hash)
+- After saving from editor, loads the (possibly renamed) function into the current shell (only for the current session)
+- Automatically detects if changes were made (via MD5 hash). Checks if the function name is valid and not already used.
 - Tab completion suggests existing function names when typing `fed <TAB>`
 
 ### `sal` - Save ALiases
@@ -190,9 +190,12 @@ No changes detected. Function 'oldfunc' was not sourced.
 
 ## 🚫 Forbidden names
 
-If the given name is already an *alias*, a *keyword*, a *builtin*, or an executable *file*, an error message is printed and the workflow is stopped:
+If the given name is **bad** (invalid or already an *alias*, a *keyword*, a *builtin*, or an executable *file*), an error message is printed and the workflow is stopped:
 
 ```bash
+$ fed "my func"
+Error: invalid function name 'my func'
+
 $ fed help
 Error: 'help' exists and is of type 'builtin'
 
@@ -202,6 +205,17 @@ Error: 'sed' exists and is of type 'file'
 $ fed case
 Error: 'case' exists and is of type 'keyword'
 ```
+
+If the name in the function signature is changed to a **bad** one before exiting the editor, an error is displayed, and the user can choose to **return** to the editor:
+
+```bash
+$ fed helper
+Creating new function: 'helper'.
+Error: 'help' exists and is of type 'builtin'
+Try again? [Y/n]
+```
+
+This also occurs if **no changes** were made, or if **syntax errors** prevent the function definition from being sourced.
 
 ## ⚙️ <a name="config"></a>Configuration
 
