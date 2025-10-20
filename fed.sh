@@ -26,9 +26,15 @@ sal() {
   fi
 
   # Save aliases and add timestamp initialization
+  local temp_file=$(mktemp)
+  alias > "$temp_file"
+  echo '_last_sal=$(date +%s)' >> "$temp_file"
   _last_sal=$(date +%s)
-  alias > "$file"
-  echo '_last_sal=$(date +%s)' >> "$file"
+  if diff "$temp_file" "$file" &>/dev/null; then
+    echo "There are no changes since the last save."
+    return 0
+  fi
+  mv "$temp_file" "$file"
   echo "Aliases saved to $file"
 }
 
@@ -43,9 +49,15 @@ saf() {
   fi
 
   # Save functions and add timestamp initialization
+  local temp_file=$(mktemp)
+  declare -f > "$temp_file"
+  echo '_last_saf=$(date +%s)' >> "$temp_file"
   _last_saf=$(date +%s)
-  declare -f > "$file"
-  echo '_last_saf=$(date +%s)' >> "$file"
+  if diff "$temp_file" "$file" &>/dev/null; then
+    echo "There are no changes since the last save."
+    return 0
+  fi
+  mv "$temp_file" "$file"
   echo "Functions saved to $file"
 }
 
