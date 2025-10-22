@@ -32,6 +32,7 @@ sal() {
   _last_sal=$(date +%s)
   if diff "$temp_file" "$file" &>/dev/null; then
     echo "There are no changes since the last save."
+    rm -f "$temp_file"
     return 0
   fi
   mv "$temp_file" "$file"
@@ -55,6 +56,7 @@ saf() {
   _last_saf=$(date +%s)
   if diff "$temp_file" "$file" &>/dev/null; then
     echo "There are no changes since the last save."
+    rm -f "$temp_file"
     return 0
   fi
   mv "$temp_file" "$file"
