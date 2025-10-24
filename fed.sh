@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Installation script for fed function, sal and saf aliases
+# Installation script for fed function and related definitions
 
 # Ensure this script is sourced, not executed
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
